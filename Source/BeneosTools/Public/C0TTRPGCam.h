@@ -22,6 +22,23 @@ enum class EC0AdjustmentMode : uint8
     E_NUM		UMETA(Hidden)
 };
 
+UENUM(BlueprintType)
+enum class EC0MoveMode : uint8
+{
+    E_NONE		UMETA(DisplayName = "NONE", Hidden),
+
+    // Only moves camera
+    CamOnly 	UMETA(DisplayName = "Camera Only"),
+    // Only moves grid
+    GridOnly	UMETA(DisplayName = "Grid Only"),
+    // Moves both camera and grid, maintains relative positions
+    Both		UMETA(DisplayName = "Both"),
+    // Locks all movement
+    Lock        UMETA(DisplayName = "Locked"),
+
+    E_NUM		UMETA(Hidden)
+};
+
 class AC0Grid;
 
 UCLASS(meta = (DisplayName = "Beneos Cam"))
@@ -37,6 +54,8 @@ public:
 
     virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
+    virtual void PostEditMove(bool bFinished) override;
+
     virtual FString GetDefaultActorLabel() const override;
 
 protected:
@@ -44,6 +63,10 @@ protected:
     // Centre of grid and point that the camera is focused on, in world space
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Beneos Tools")
         FVector GridCentre;
+
+    // Changes behaviour of transform gizmo - can move just camera, just grid, both, or lock movement
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
+        EC0MoveMode MoveMode;
 
     // Margin between the grid edge and the frame of the camera
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
@@ -122,6 +145,8 @@ private:
 
     void SetShowPIP(const bool bShow);
 
+    FVector UpdatePivotOffset();
+
     bool bInitialized;
 
     EC0AdjustmentMode PrevAdjustmentMode;
@@ -130,5 +155,7 @@ private:
 
     // Value of ULevelEditorViewportSettings::bPreviewSelectedCameras setting before selected
     bool bPrevShowPIP;
+
+    FVector PrevLocation;
 
 };

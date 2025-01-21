@@ -9,7 +9,6 @@
 
 #pragma region Utility
 
-
 bool FindLineIntersection(
     const FVector2D& Point1, const FVector2D& Dir1,
     const FVector2D& Point2, const FVector2D& Dir2,
@@ -42,6 +41,7 @@ FVector2D ProjectPointOntoLine(const FVector2D& Point, const FVector2D& LinePoin
 
 AC0TTRPGCam::AC0TTRPGCam() :
     GridCentre(FVector::Zero()),
+    MoveMode(EC0MoveMode::CamOnly),
     GridMarginInTiles(0.1f),
     Length(10),
     Width(10),
@@ -76,6 +76,8 @@ void AC0TTRPGCam::OnConstruction(const FTransform& Transform)
     {
         bInitialized = true;
         PrevAdjustmentMode = AdjustmentMode;
+
+        PrevLocation = GetActorLocation();
     }
 
     Super::OnConstruction(Transform);
@@ -83,20 +85,68 @@ void AC0TTRPGCam::OnConstruction(const FTransform& Transform)
     GridChildActor->SetChildActorClass(AC0Grid::StaticClass());
     GridChildActor->CreateChildActor();
     UpdateCamera();
-    //SetShowPIP(bShowPIP);
 }
 
 void AC0TTRPGCam::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 
-    if (PropertyChangedEvent.Property && PropertyChangedEvent.Property->GetName() == "bShowPIP")
+    if (PropertyChangedEvent.Property)
     {
-        if (GEditor)
+        if (PropertyChangedEvent.Property->GetName() == "bShowPIP")
         {
-            GEditor->SelectActor(this, true, true);
+            if (GEditor)
+            {
+                GEditor->SelectActor(this, true, true);
+            }
+        }
+        else if (PropertyChangedEvent.Property->GetName() == "MoveMode")
+        {
+            FVector WorldPivotOffset = UpdatePivotOffset();
+            if (GEditor)
+            {               
+                GEditor->SetPivot(GetActorLocation() + WorldPivotOffset, false, true);
+            }
         }
     }
+}
+
+void AC0TTRPGCam::PostEditMove(bool bFinished)
+{
+    Super::PostEditMove(bFinished);
+
+    if (MoveMode == EC0MoveMode::GridOnly)
+    {
+        FVector Delta = GetActorLocation() - PrevLocation;
+        SetActorLocation(PrevLocation);
+        GridCentre += Delta;
+        GridChildActor->SetWorldLocation(GridCentre);
+        UpdatePivotOffset();
+    }
+    else if (MoveMode == EC0MoveMode::Both)
+    {
+        FVector Delta = GetActorLocation() - PrevLocation;
+        GridCentre += Delta;
+        GridChildActor->SetWorldLocation(GridCentre);
+    }
+    else if (MoveMode == EC0MoveMode::Lock)
+    {
+        SetActorLocation(PrevLocation);
+    }
+    PrevLocation = GetActorLocation();
+}
+
+FVector AC0TTRPGCam::UpdatePivotOffset()
+{
+    FVector WorldPivotOffset = FVector::ZeroVector;
+    FVector LocalPivotOffset = FVector::ZeroVector;
+    if (MoveMode == EC0MoveMode::GridOnly || MoveMode == EC0MoveMode::Both)
+    {
+        WorldPivotOffset = GridCentre - GetActorLocation();
+        LocalPivotOffset = GetActorRotation().GetInverse().RotateVector(WorldPivotOffset);
+    }
+    SetPivotOffset(LocalPivotOffset);
+    return WorldPivotOffset;
 }
 
 FString AC0TTRPGCam::GetDefaultActorLabel() const
