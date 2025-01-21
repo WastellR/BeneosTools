@@ -6,12 +6,17 @@
 
 
 #include "C0TTRPGCam.h"
+#include "C0TTRPGCamCustomization.h"
 void FBeneosToolsModule::StartupModule()
 {
     SelectedCam = nullptr;
     FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");    
     LevelEditorModule.OnActorSelectionChanged().AddRaw(this, &FBeneosToolsModule::OnActorSelectionChanged);
 
+    // Register details customization
+    FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+    // Leave out the suffix "A/U/F" when specifying the name of your class in the first param
+    PropertyEditorModule.RegisterCustomClassLayout("C0TTRPGCam", FOnGetDetailCustomizationInstance::CreateStatic(&FC0TTRPGCamCustomization::MakeInstance));
 
 void FBeneosToolsModule::OnActorSelectionChanged(const TArray<UObject*>& NewSelection, bool bIsSelection)
 {
