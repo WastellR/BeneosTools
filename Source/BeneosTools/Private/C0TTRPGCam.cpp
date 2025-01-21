@@ -53,6 +53,7 @@ AC0TTRPGCam::AC0TTRPGCam() :
     AdjustmentMode(EC0AdjustmentMode::Automatic),
     AspectRatio(0.f),
     FOV(0.f),
+    bDebugDrawLineToFocalPoint(false),
     bInitialized(false)
 {
     GridChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("GridChild"));
@@ -62,6 +63,9 @@ AC0TTRPGCam::AC0TTRPGCam() :
     GridChildActor->SetUsingAbsoluteScale(true);
 
     SetActorRotation(FRotator(-90.f, 0.f, 0.f));
+
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bTickEvenWhenPaused = true;
 }
 
 void AC0TTRPGCam::OnConstruction(const FTransform& Transform)
@@ -175,7 +179,6 @@ void AC0TTRPGCam::UpdateCamera()
         float Denominator = FVector::DotProduct(NewCentreDir, FVector::UpVector);
         float t = FVector::DotProduct((GridCentre - GetActorLocation()), FVector::UpVector) / Denominator;        
         AdjustedCentre = GetActorLocation() + t * NewCentreDir;
-        //DrawDebugLine(GetWorld(), GetActorLocation(), AdjustedCentre, FColor::Green, false, 10.f);
 
         // Adjust FOV calc
         float EdgeDistA = FVector::Distance(AdjustedCentre, IntersectA);
@@ -190,6 +193,8 @@ void AC0TTRPGCam::UpdateCamera()
     FVector AdjustedUp = FVector::CrossProduct(Forward, Right);
     FMatrix RotationMatrix = FMatrix(Forward, Right, AdjustedUp, FVector::ZeroVector);
     SetActorRotation(RotationMatrix.Rotator());
+    CameraFocusPoint = AdjustedCentre;
+    HandleDebugDraw();
     
     GridChildActor->SetWorldLocationAndRotation(GridCentre, FRotator());    
     GetGridActor()->SetParameters(Length, Width, TileSizeInCm, LineWidth, GridColour, GridRotation);
@@ -250,6 +255,16 @@ void AC0TTRPGCam::UpdateCamera()
     {        
         Component->SetAspectRatio(FinalAspectRatio);
         Component->SetFieldOfView(FinalFOV);
+    }
+}
+
+void AC0TTRPGCam::HandleDebugDraw()
+{
+    if (bDebugDrawLineToFocalPoint)
+    {
+        DrawDebugLine(GetWorld(), GetActorLocation(), CameraFocusPoint, FColor::Red, false, 1.f);
+        FTimerHandle Handle;
+        GetWorld()->GetTimerManager().SetTimer(Handle, this, &AC0TTRPGCam::HandleDebugDraw, 1.0f, false);
     }
 }
 

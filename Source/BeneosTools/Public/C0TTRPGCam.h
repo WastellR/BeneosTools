@@ -39,7 +39,7 @@ public:
 
 protected:
     
-    // Centre of grid and point that the camera is focused on
+    // Centre of grid and point that the camera is focused on, in world space
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Beneos Tools")
         FVector GridCentre;
 
@@ -84,7 +84,10 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools", meta = (EditCondition = "AdjustmentMode != EC0AdjustmentMode::Automatic", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0", Units = deg))
         float FOV;
-    
+
+    // Tick to draw a line between the camera and its focal point
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Beneos Tools")
+        bool bDebugDrawLineToFocalPoint;
 
 public:
 
@@ -102,11 +105,15 @@ private:
     // and relative camera position.
     void UpdateCamera();
 
+    void HandleDebugDraw();
+
     TObjectPtr<UChildActorComponent> GridChildActor;
     AC0Grid* GetGridActor();
 
     bool bInitialized;
 
     EC0AdjustmentMode PrevAdjustmentMode;
+
+    FVector CameraFocusPoint;
 
 };
