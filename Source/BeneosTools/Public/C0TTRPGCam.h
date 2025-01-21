@@ -35,6 +35,8 @@ public:
 
     virtual void OnConstruction(const FTransform& Transform) override;
 
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
     virtual FString GetDefaultActorLabel() const override;
 
 protected:
@@ -89,6 +91,10 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Beneos Tools")
         bool bDebugDrawLineToFocalPoint;
 
+    // Toggles whether this camera shows a picture-in-picture preview 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Beneos Tools")
+        bool bShowPIP;
+
 public:
 
     // Hides/shows the grid
@@ -98,6 +104,10 @@ public:
     // Centres the camera directly above the centre of the grid
     UFUNCTION(CallInEditor, Category = "Beneos Tools")
         void CentreCam();
+    
+    void OnSelectActor(const bool bInPrevShowPIP);
+    void OnDeselectActor();
+    bool GetPrevShowPIP() { return bPrevShowPIP; }
 
 private:
 
@@ -110,10 +120,15 @@ private:
     TObjectPtr<UChildActorComponent> GridChildActor;
     AC0Grid* GetGridActor();
 
+    void SetShowPIP(const bool bShow);
+
     bool bInitialized;
 
     EC0AdjustmentMode PrevAdjustmentMode;
 
     FVector CameraFocusPoint;
+
+    // Value of ULevelEditorViewportSettings::bPreviewSelectedCameras setting before selected
+    bool bPrevShowPIP;
 
 };

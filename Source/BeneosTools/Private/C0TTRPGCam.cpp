@@ -54,6 +54,7 @@ AC0TTRPGCam::AC0TTRPGCam() :
     AspectRatio(0.f),
     FOV(0.f),
     bDebugDrawLineToFocalPoint(false),
+    bShowPIP(true),
     bInitialized(false)
 {
     GridChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("GridChild"));
@@ -82,6 +83,20 @@ void AC0TTRPGCam::OnConstruction(const FTransform& Transform)
     GridChildActor->SetChildActorClass(AC0Grid::StaticClass());
     GridChildActor->CreateChildActor();
     UpdateCamera();
+    //SetShowPIP(bShowPIP);
+}
+
+void AC0TTRPGCam::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    if (PropertyChangedEvent.Property && PropertyChangedEvent.Property->GetName() == "bShowPIP")
+    {
+        if (GEditor)
+        {
+            GEditor->SelectActor(this, true, true);
+        }
+    }
 }
 
 FString AC0TTRPGCam::GetDefaultActorLabel() const
@@ -109,6 +124,31 @@ void AC0TTRPGCam::CentreCam()
     SetActorLocation(Location);    
 
     UpdateCamera();
+}
+
+void AC0TTRPGCam::OnSelectActor(const bool bInPrevShowPIP)
+{
+    bPrevShowPIP = bInPrevShowPIP;
+    SetShowPIP(bShowPIP);
+}
+
+void AC0TTRPGCam::OnDeselectActor()
+{
+    ULevelEditorViewportSettings* ViewportSettings = GetMutableDefault<ULevelEditorViewportSettings>();
+    if (ViewportSettings)
+    {
+        SetShowPIP(bPrevShowPIP);
+    }
+}
+
+void AC0TTRPGCam::SetShowPIP(const bool bShow)
+{
+    ULevelEditorViewportSettings* ViewportSettings = GetMutableDefault<ULevelEditorViewportSettings>();
+    if (ViewportSettings)
+    {
+        ViewportSettings->bPreviewSelectedCameras = bShow;
+        ViewportSettings->SaveConfig();
+    }
 }
 
 void AC0TTRPGCam::UpdateCamera()
