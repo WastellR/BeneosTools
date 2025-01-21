@@ -48,7 +48,12 @@ AC0TTRPGCam::AC0TTRPGCam() :
     TileSizeInCm(152.4),
     LineWidth(0.05f),
     GridColour(FColor(255, 255, 255, 51)),
-    UpDirection(FVector(1.f, 0.f, 0.f))
+    GridRotation(0.f),
+    UpDirection(FVector(1.f, 0.f, 0.f)),
+    AdjustmentMode(EC0AdjustmentMode::Automatic),
+    AspectRatio(0.f),
+    FOV(0.f),
+    bInitialized(false)
 {
     GridChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("GridChild"));
     GridChildActor->SetupAttachment(RootComponent);
@@ -61,6 +66,13 @@ AC0TTRPGCam::AC0TTRPGCam() :
 
 void AC0TTRPGCam::OnConstruction(const FTransform& Transform)
 {
+    // Call initialization only the first time the actor is created in editor
+    if (!bInitialized)
+    {
+        bInitialized = true;
+        PrevAdjustmentMode = AdjustmentMode;
+    }
+
     Super::OnConstruction(Transform);
 
     GridChildActor->SetChildActorClass(AC0Grid::StaticClass());
@@ -98,7 +110,7 @@ void AC0TTRPGCam::CentreCam()
 void AC0TTRPGCam::UpdateCamera()
 {
     const float Margin = GridMarginInTiles * 2.f;
-    const float AspectRatio = (Width + Margin) / (Length + Margin);
+    const float AutoAspectRatio = (Width + Margin) / (Length + Margin);
     const float HalfGridWidth = (Width + Margin) * TileSizeInCm / 2.f;
     const float HalfGridLength = (Length + Margin) * TileSizeInCm / 2.f;
     float FrameWidth = HalfGridWidth;
@@ -113,14 +125,12 @@ void AC0TTRPGCam::UpdateCamera()
     FVector CameraOffset = ProjectedCamera - GridCentre;
     // Find camera focus location if it's tilted off-centre
     if (GetActorLocation().X != GridCentre.X || GetActorLocation().Y != GridCentre.Y)
-    {
-        // TODO: Make this into adjustable parameter
-        const float GridRotationInDegrees = 0.f;
+    {        
         FVector2D Centre2D(GridCentre.X, GridCentre.Y);        
         FVector UpDir = FVector(1.f, 0.f, 0.f);
         FVector RightDir = FVector(0.f, 1.f, 0.f);
-        UpDir = UpDir.RotateAngleAxis(GridRotationInDegrees, FVector::UpVector);
-        RightDir = RightDir.RotateAngleAxis(GridRotationInDegrees, FVector::UpVector);        
+        UpDir = UpDir.RotateAngleAxis(GridRotation, FVector::UpVector);
+        RightDir = RightDir.RotateAngleAxis(GridRotation, FVector::UpVector);
         // Find positions of grid corners
         const FVector TopLeft = GridCentre + (UpDir * HalfGridLength) + (RightDir * HalfGridWidth);
         const FVector TopRight = GridCentre + (UpDir * HalfGridLength) - (RightDir * HalfGridWidth);
@@ -175,21 +185,71 @@ void AC0TTRPGCam::UpdateCamera()
 
     // Find camera rotation
     FVector Forward = (AdjustedCentre - GetActorLocation()).GetSafeNormal();
-    FVector Right = FVector::CrossProduct(UpDirection, Forward).GetSafeNormal();
+    FVector RotatedUpDir = UpDirection.RotateAngleAxis(GridRotation, FVector::UpVector);
+    FVector Right = FVector::CrossProduct(RotatedUpDir, Forward).GetSafeNormal();
     FVector AdjustedUp = FVector::CrossProduct(Forward, Right);
     FMatrix RotationMatrix = FMatrix(Forward, Right, AdjustedUp, FVector::ZeroVector);
     SetActorRotation(RotationMatrix.Rotator());
     
     GridChildActor->SetWorldLocationAndRotation(GridCentre, FRotator());    
-    GetGridActor()->SetParameters(Length, Width, TileSizeInCm, LineWidth, GridColour);
+    GetGridActor()->SetParameters(Length, Width, TileSizeInCm, LineWidth, GridColour, GridRotation);
+    
+    // Calc FOV
+    const float CamDist = FVector::Dist(GridCentre, GetActorLocation());
+    const float AutoFOV = FMath::RadiansToDegrees(2 * FMath::Atan(FrameWidth / CamDist));
+
+    if (AdjustmentMode != PrevAdjustmentMode)
+    {
+        if (AdjustmentMode == EC0AdjustmentMode::Automatic)
+        {
+            AspectRatio = 0.f;
+            FOV = 0.f;
+        }
+        else if (AdjustmentMode == EC0AdjustmentMode::Additional &&
+            PrevAdjustmentMode == EC0AdjustmentMode::Manual)
+        {            
+            AspectRatio -= AutoAspectRatio;
+            FOV -= AutoFOV;
+        }
+        else if (AdjustmentMode == EC0AdjustmentMode::Manual)
+        {
+            if (PrevAdjustmentMode == EC0AdjustmentMode::Automatic)
+            {
+                AspectRatio = AutoAspectRatio;
+                FOV = AutoFOV;
+            }
+            else if (PrevAdjustmentMode == EC0AdjustmentMode::Additional)
+            {
+                AspectRatio += AutoAspectRatio;
+                FOV += AutoFOV;
+            }
+        }
+
+        PrevAdjustmentMode = AdjustmentMode;
+    }
+
+    float FinalAspectRatio = AspectRatio;
+    float FinalFOV = FOV;
+    if (AdjustmentMode == EC0AdjustmentMode::Automatic)
+    {
+        FinalAspectRatio = AutoAspectRatio;
+        FinalFOV = AutoFOV;
+    }
+    else if (AdjustmentMode == EC0AdjustmentMode::Additional)
+    {
+        FinalAspectRatio = AutoAspectRatio + AspectRatio;
+        FinalFOV = AutoFOV + FOV;
+    }
+    else if (AdjustmentMode == EC0AdjustmentMode::Manual)
+    {
+        FinalAspectRatio = AspectRatio;
+        FinalFOV = FOV;
+    }
+
     if (UCameraComponent* Component = GetCameraComponent())
     {        
-        Component->SetAspectRatio(AspectRatio);
-        
-        // Calc FOV
-        const float CamDist = FVector::Dist(GridCentre, GetActorLocation());
-        const float FOV = FMath::RadiansToDegrees(2 * FMath::Atan(FrameWidth / CamDist));
-        Component->SetFieldOfView(FOV);
+        Component->SetAspectRatio(FinalAspectRatio);
+        Component->SetFieldOfView(FinalFOV);
     }
 }
 

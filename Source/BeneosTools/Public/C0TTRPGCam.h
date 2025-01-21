@@ -7,6 +7,21 @@
 
 #include "C0TTRPGCam.generated.h"
 
+UENUM(BlueprintType)
+enum class EC0AdjustmentMode : uint8
+{
+    E_NONE		UMETA(DisplayName = "NONE", Hidden),
+
+    // AR and FOV are calculated automatically, depending on camera position
+    Automatic	UMETA(DisplayName = "Automatic"),
+    // AR and FOV are calculated based on cam position, plus additional adjustable value
+    Additional	UMETA(DisplayName = "Additional"),
+    // AR and FOV are not automatically adjusted
+    Manual		UMETA(DisplayName = "Manual"),
+
+    E_NUM		UMETA(Hidden)
+};
+
 class AC0Grid;
 
 UCLASS(meta = (DisplayName = "Beneos Cam"))
@@ -52,9 +67,24 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
         FColor GridColour;
 
+    // Grid Rotation in degrees around Z axis
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
+        float GridRotation;
+
     // Camera's up vector will always be this
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
         FVector UpDirection;
+
+    // Sets auto-update behaviour of cam's FOV + Aspect Ratio
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
+        EC0AdjustmentMode AdjustmentMode;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools", meta = (EditCondition = "AdjustmentMode != EC0AdjustmentMode::Automatic", ClampMin = "0.1", ClampMax = "100.0"))
+        float AspectRatio;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools", meta = (EditCondition = "AdjustmentMode != EC0AdjustmentMode::Automatic", UIMin = "5.0", UIMax = "170", ClampMin = "0.001", ClampMax = "360.0", Units = deg))
+        float FOV;
+    
 
 public:
 
@@ -74,5 +104,9 @@ private:
 
     TObjectPtr<UChildActorComponent> GridChildActor;
     AC0Grid* GetGridActor();
+
+    bool bInitialized;
+
+    EC0AdjustmentMode PrevAdjustmentMode;
 
 };
