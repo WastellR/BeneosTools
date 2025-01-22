@@ -23,7 +23,7 @@ public:
     // Called whenever a property is changed in the editor
     virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-protected:
+public:
     
     // Length in tiles
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools", meta = (ClampMin = 0.1f))
@@ -43,22 +43,12 @@ protected:
 
     // Grid Colour
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
-        FColor GridColour;
-
-    // Grid Rotation in degrees around Z axis
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
-        float GridRotation;
+        FColor GridColour;    
 
     void UpdateGrid();
 
     TObjectPtr<UStaticMeshComponent> PlaneMeshComponent;
 
     TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial;
-
-public:
-
-    void SetParameters(const float InLength, const float InWidth, 
-        const float InTileSizeInCm, const float InLineWidth, const FColor& InGridColour,
-        const float InGridRotation);
 
 };

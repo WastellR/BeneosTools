@@ -5,11 +5,11 @@
 #define LOCTEXT_NAMESPACE "FBeneosToolsModule"
 
 
-#include "C0TTRPGCam.h"
+#include "C0CamGrid.h"
 #include "C0TTRPGCamCustomization.h"
 void FBeneosToolsModule::StartupModule()
 {
-    SelectedCam = nullptr;
+    SelectedGrid = nullptr;
     FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");    
     LevelEditorModule.OnActorSelectionChanged().AddRaw(this, &FBeneosToolsModule::OnActorSelectionChanged);
 
@@ -24,10 +24,10 @@ void FBeneosToolsModule::OnActorSelectionChanged(const TArray<UObject*>& NewSele
     // is displayed, this tries to keep the global setting unchanged by switching back
     // to whatever it was previously when the camera is deselected.
     bool bPrevShowPIP;
-    if (SelectedCam)
+    if (SelectedGrid)
     {
-        SelectedCam->OnDeselectActor();
-        bPrevShowPIP = SelectedCam->GetPrevShowPIP();
+        SelectedGrid->OnDeselectActor();
+        bPrevShowPIP = SelectedGrid->GetPrevShowPIP();
     }
     else
     {
@@ -37,24 +37,26 @@ void FBeneosToolsModule::OnActorSelectionChanged(const TArray<UObject*>& NewSele
             bPrevShowPIP = ViewportSettings->bPreviewSelectedCameras;
         }
     }
-    SelectedCam = nullptr;
+    SelectedGrid = nullptr;
     for (UObject* SelectedObject : NewSelection)
     {
-        if (AC0TTRPGCam* NextSelectedCam = Cast<AC0TTRPGCam>(SelectedObject))
+        if (AC0CamGrid* NextSelectedGrid = Cast<AC0CamGrid>(SelectedObject))
         {
-            SelectedCam = NextSelectedCam;
-            SelectedCam->OnSelectActor(bPrevShowPIP);
+            SelectedGrid = NextSelectedGrid;
+            SelectedGrid->OnSelectActor(bPrevShowPIP);
         }
     }
 }
 void FBeneosToolsModule::ShutdownModule()
 {
-    if (SelectedCam)
+    FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(BeneosEditorTabId);
+
+    if (SelectedGrid)
     {
         ULevelEditorViewportSettings* ViewportSettings = GetMutableDefault<ULevelEditorViewportSettings>();
         if (ViewportSettings)
         {
-            ViewportSettings->bPreviewSelectedCameras = SelectedCam->GetPrevShowPIP();
+            ViewportSettings->bPreviewSelectedCameras = SelectedGrid->GetPrevShowPIP();
             ViewportSettings->SaveConfig();
         }
     }

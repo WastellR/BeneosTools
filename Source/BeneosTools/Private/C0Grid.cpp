@@ -7,8 +7,7 @@ AC0Grid::AC0Grid() :
     Width(10),
     TileSizeInCm(152.4),
     LineWidth(0.05f),
-    GridColour(FColor(255, 255, 255, 51)),
-    GridRotation(0.f)
+    GridColour(FColor(255, 255, 255, 51))
 {
     PlaneMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlaneMeshComponent"));
     RootComponent = PlaneMeshComponent;
@@ -60,20 +59,6 @@ void AC0Grid::UpdateGrid()
         DynamicMaterial->SetScalarParameterValue("GridLength", Length);
         DynamicMaterial->SetScalarParameterValue("LineWidth", LineWidth);
         DynamicMaterial->SetVectorParameterValue("GridColour", GridColour);
-    }
-    SetActorRotation(FRotator(0.f, GridRotation, 0.f));
+    }    
     SetActorScale3D(FVector(Length * TileSizeInCm / 100.f, Width * TileSizeInCm / 100.f, 1.f));
-}
-
-void AC0Grid::SetParameters(const float InLength, const float InWidth,
-    const float InTileSizeInCm, const float InLineWidth, const FColor& InGridColour,
-    const float InGridRotation)
-{
-    Length = InLength;
-    Width = InWidth;
-    TileSizeInCm = InTileSizeInCm;
-    LineWidth = InLineWidth;
-    GridColour = InGridColour;
-    GridRotation = InGridRotation;
-    UpdateGrid();
 }
