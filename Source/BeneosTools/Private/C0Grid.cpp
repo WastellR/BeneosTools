@@ -8,6 +8,7 @@ AC0Grid::AC0Grid() :
     TileSizeInCm(152.4),
     LineWidth(0.05f),
     GridColour(FColor(255, 255, 255, 51))
+    bRenderOnTop(true),
 {
     PlaneMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlaneMeshComponent"));
     RootComponent = PlaneMeshComponent;
@@ -51,10 +52,18 @@ void AC0Grid::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
     }
 }
 
+        Material->bDisableDepthTest = bRenderOnTop;
 void AC0Grid::UpdateGrid()
 {
     if (DynamicMaterial)
     {
+        static bool bLastRenderOnTop = true;
+        if (bLastRenderOnTop != bRenderOnTop)
+        {
+            LoadGridMaterial(true);
+        }
+        bLastRenderOnTop = bRenderOnTop;
+
         DynamicMaterial->SetScalarParameterValue("GridWidth", Width);
         DynamicMaterial->SetScalarParameterValue("GridLength", Length);
         DynamicMaterial->SetScalarParameterValue("LineWidth", LineWidth);

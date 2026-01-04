@@ -23,6 +23,10 @@ public:
     // Called whenever a property is changed in the editor
     virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
+private:
+
+    void LoadGridMaterial(const bool bRedo = false);
+
 public:
     
     // Length in tiles
@@ -44,6 +48,9 @@ public:
     // Grid Colour
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
         FColor GridColour;    
+    // Render on top
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
+        bool bRenderOnTop;
 
     void UpdateGrid();
 
