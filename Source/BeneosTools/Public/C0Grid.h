@@ -53,6 +53,49 @@ public:
         bool bRenderOnTop;
 
     void UpdateGrid();
+    // Enable Snapping
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping")
+        bool bEnableSnapping;
+
+    // Use selected actor as snapping origin
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping", meta = (EditCondition = "bEnableSnapping"))
+        bool bUseActorSnapOrigin;
+
+    // Snap Origin Actor
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping", meta = (EditCondition = "bEnableSnapping && bUseActorSnapOrigin"))
+        TObjectPtr<AActor> SnapOriginActor;
+
+    // Snap Origin Vector
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping", meta = (EditCondition = "bEnableSnapping && !bUseActorSnapOrigin"))
+        FVector SnapOriginVector;
+
+    // Snap increment
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping", meta = (EditCondition = "bEnableSnapping"))
+        float SnapIncrement;
+
+    // Enable to halve the snap increment
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping", meta = (EditCondition = "bEnableSnapping"))
+        bool bHalveSnapIncrement;
+
+private:
+
+    // Variables used to snap while dragging
+    
+    // Actor position on previous movement frame
+    float PrevMoveX;
+    float PrevMoveY;
+    // Actor position *before* drag movement started
+    float StartMoveX;
+    float StartMoveY;
+    // Total amount that the gizmo has been moved
+    float GizmoMoveX;
+    float GizmoMoveY;
+    // True if was dragging in the previous frame
+    bool bWasDragging;
+
+    void SnapToIncrement();
+
+public:
 
     TObjectPtr<UStaticMeshComponent> PlaneMeshComponent;
 
