@@ -7,6 +7,9 @@
 
 #include "C0Grid.generated.h"
 
+class AC0TTRPGCam;
+class AC0TTRPGCineCam;
+
 UCLASS(config = BeneosTools, meta = (DisplayName = "Beneos Grid"))
 class BENEOSTOOLS_API AC0Grid : public AActor
 {
@@ -19,6 +22,8 @@ public:
     virtual void OnConstruction(const FTransform& Transform) override;
 
     virtual FString GetDefaultActorLabel() const override;
+
+    virtual void PostEditMove(bool bFinished) override;
 
     // Called whenever a property is changed in the editor
     virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -47,12 +52,12 @@ public:
 
     // Grid Colour
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
-        FColor GridColour;    
+        FColor GridColour;
+
     // Render on top
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools")
         bool bRenderOnTop;
 
-    void UpdateGrid();
     // Enable Snapping
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping")
         bool bEnableSnapping;
@@ -97,8 +102,30 @@ private:
 
 public:
 
+    virtual void UpdateGrid();
+
+    void SetGridVisibility(const bool bVisible);
+
     TObjectPtr<UStaticMeshComponent> PlaneMeshComponent;
 
     TObjectPtr<UMaterialInstanceDynamic> DynamicMaterial;
+
+    TSet<AC0TTRPGCam*> ChildCameras;
+
+    TSet<AC0TTRPGCineCam*> ChildCineCameras;
+
+#pragma region Editor Functions
+
+public:
+
+    // Hides/shows the grid
+    UFUNCTION(CallInEditor, Category = "Beneos Tools")
+        void ToggleVisibility();
+
+    // Applies the visual settings of this grid (colour, line width, visibility) to all grids in the scene
+    UFUNCTION(CallInEditor, Category = "Beneos Tools")
+        void ApplyGlobally();
+
+#pragma endregion Editor Functions
 
 };
