@@ -5,7 +5,8 @@
 #include "Modules/ModuleManager.h"
 
 class SC0TTRPGEditorViewport;
-class AC0CamGrid;
+class AC0TTRPGCam;
+class AC0TTRPGCineCam;
 
 class FBeneosToolsModule : public IModuleInterface
 {
@@ -13,8 +14,8 @@ public:
 
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
 
-	AC0CamGrid* SelectedGrid;
+	AC0TTRPGCam* SelectedCam;
+	AC0TTRPGCineCam* SelectedCineCam;
 	void OnActorSelectionChanged(const TArray<UObject*>& NewSelection, bool bIsSelection);
 };

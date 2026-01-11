@@ -4,16 +4,19 @@
 
 #define LOCTEXT_NAMESPACE "FBeneosToolsModule"
 
+#include <LevelEditor.h>
 
-#include "C0CamGrid.h"
+#include "C0TTRPGCam.h"
+#include "C0TTRPGCineCam.h"
 #include "C0TTRPGCamCustomization.h"
 #include "C0TTRPGCineCamCustomization.h"
 #include "C0GridCustomization.h"
 #include "C0TorchCustomization.h"
 void FBeneosToolsModule::StartupModule()
 {
-    SelectedGrid = nullptr;
-    FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");    
+    SelectedCam = nullptr;
+    SelectedCineCam = nullptr;
+    FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
     LevelEditorModule.OnActorSelectionChanged().AddRaw(this, &FBeneosToolsModule::OnActorSelectionChanged);
 
     // Register details customization
@@ -31,10 +34,16 @@ void FBeneosToolsModule::OnActorSelectionChanged(const TArray<UObject*>& NewSele
     // is displayed, this tries to keep the global setting unchanged by switching back
     // to whatever it was previously when the camera is deselected.
     bool bPrevShowPIP;
-    if (SelectedGrid)
+
+    if (SelectedCam)
     {
-        SelectedGrid->OnDeselectActor();
-        bPrevShowPIP = SelectedGrid->GetPrevShowPIP();
+        SelectedCam->OnDeselectActor();
+        bPrevShowPIP = SelectedCam->GetPrevShowPIP();
+    }
+    else if (SelectedCineCam)
+    {
+        SelectedCineCam->OnDeselectActor();
+        bPrevShowPIP = SelectedCineCam->GetPrevShowPIP();
     }
     else
     {
@@ -44,27 +53,22 @@ void FBeneosToolsModule::OnActorSelectionChanged(const TArray<UObject*>& NewSele
             bPrevShowPIP = ViewportSettings->bPreviewSelectedCameras;
         }
     }
-    SelectedGrid = nullptr;
+
+    SelectedCam = nullptr;
+    SelectedCineCam = nullptr;
     for (UObject* SelectedObject : NewSelection)
     {
-        if (AC0CamGrid* NextSelectedGrid = Cast<AC0CamGrid>(SelectedObject))
+        if (AC0TTRPGCam* NextSelectedCam = Cast<AC0TTRPGCam>(SelectedObject))
         {
-            SelectedGrid = NextSelectedGrid;
-            SelectedGrid->OnSelectActor(bPrevShowPIP);
+            SelectedCam = NextSelectedCam;
+            SelectedCam->OnSelectActor(bPrevShowPIP);
+            break;
         }
-    }
-}
-void FBeneosToolsModule::ShutdownModule()
-{
-    FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(BeneosEditorTabId);
-
-    if (SelectedGrid)
-    {
-        ULevelEditorViewportSettings* ViewportSettings = GetMutableDefault<ULevelEditorViewportSettings>();
-        if (ViewportSettings)
+        else if (AC0TTRPGCineCam* NextSelectedCineCam = Cast<AC0TTRPGCineCam>(SelectedObject))
         {
-            ViewportSettings->bPreviewSelectedCameras = SelectedGrid->GetPrevShowPIP();
-            ViewportSettings->SaveConfig();
+            SelectedCineCam = NextSelectedCineCam;
+            SelectedCineCam->OnSelectActor(bPrevShowPIP);
+            break;
         }
     }
 }
