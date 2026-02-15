@@ -12,6 +12,8 @@
 #include "C0TTRPGCineCamCustomization.h"
 #include "C0GridCustomization.h"
 #include "C0TorchCustomization.h"
+#include "C0ChaseToolCustomization.h"
+
 void FBeneosToolsModule::StartupModule()
 {
     SelectedCam = nullptr;
@@ -26,6 +28,7 @@ void FBeneosToolsModule::StartupModule()
     PropertyEditorModule.RegisterCustomClassLayout("C0TTRPGCineCam", FOnGetDetailCustomizationInstance::CreateStatic(&FC0TTRPGCineCamCustomization::MakeInstance));
     PropertyEditorModule.RegisterCustomClassLayout("C0Grid", FOnGetDetailCustomizationInstance::CreateStatic(&FC0GridCustomization::MakeInstance));
     PropertyEditorModule.RegisterCustomClassLayout("C0Torch", FOnGetDetailCustomizationInstance::CreateStatic(&FC0TorchCustomization::MakeInstance));
+	PropertyEditorModule.RegisterCustomClassLayout("C0ChaseTool", FOnGetDetailCustomizationInstance::CreateStatic(&FC0ChaseToolCustomization::MakeInstance));
 }
 
 void FBeneosToolsModule::OnActorSelectionChanged(const TArray<UObject*>& NewSelection, bool bIsSelection)
@@ -33,7 +36,7 @@ void FBeneosToolsModule::OnActorSelectionChanged(const TArray<UObject*>& NewSele
     // Since we have to override a global setting in order to change whether the PIP
     // is displayed, this tries to keep the global setting unchanged by switching back
     // to whatever it was previously when the camera is deselected.
-    bool bPrevShowPIP;
+    bool bPrevShowPIP = false;
 
     if (SelectedCam)
     {

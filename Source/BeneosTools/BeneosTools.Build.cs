@@ -39,7 +39,9 @@ public class BeneosTools : ModuleRules
 				"Slate",
 				"SlateCore",
                 "UnrealEd",
-				"CinematicCamera"
+				"CinematicCamera",
+                "Landscape",
+                "InputCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
