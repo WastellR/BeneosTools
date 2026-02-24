@@ -1,4 +1,4 @@
-The Beneos Tools Unreal plugin is a custom set of editor tools created to the specifications of Beneos Battlemaps, a studio that makes high quality pre-rendered, topdown TTRPG battlemaps for VTT platforms like Foundry and Roll20. The plugin has the following features:
+The Beneos Tools Unreal plugin is a custom set of editor tools created to the specifications of [Beneos Battlemaps](https://beneos-battlemaps.com/), a studio that makes high quality pre-rendered, topdown TTRPG battlemaps for VTT platforms like Foundry and Roll20. The plugin has the following features:
 
 ## Grid and Camera
 ![Grid Overlay](https://github.com/WastellR/BeneosTools/blob/master/Image1.png)
@@ -48,6 +48,7 @@ The chase tool is used for animated chase sequences. It copies actors from its b
 
 The chase tool actor has two child component boxes, Box A and Box B, which are the zones used to grab and copy actors. The camera preview animation travels from the centre of Box A to the centre of Box B.
 Box B can be moved and resized independently of Box A; dragging the actor's main gizmo or changing its transform location will move both boxes.
+
 ![Chase Params](https://github.com/WastellR/BeneosTools/blob/master/ChaseParams.png)
 * **Copy Buttons:** The "Copy A to B" button will delete all actors overlapping Box B, and spawn duplicates of all actors overlapping Box A in orientation related to the centre of both boxes. The other button does the inverse.
 * **Loop Duration:** This affects the speed that the preview camera moves at, and the speed displayed in the 'Movement Speed' field below.
