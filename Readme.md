@@ -2,7 +2,7 @@ The Beneos Tools Unreal plugin is a custom set of editor tools created to the sp
 
 ## Grid and Camera
 ![Grid Overlay](https://github.com/WastellR/BeneosTools/blob/master/Image1.png)
-The Beneos Grid is a useful tool for blocking out and rendering topdown-rendered grid-aligned battlemap scenes. The assigned camera automatically adjusts its aspect ratio and FOV to exactly frame the grid. It can then be moved up and down along the Z-axis to alter the distortion effect.
+The Beneos Grid is a useful tool for blocking out and rendering topdown-rendered grid-aligned battlemap scenes. The assigned camera automatically adjusts its aspect ratio and FOV to exactly frame the grid. It can then be moved up and down along the Z-axis to make the walls in the image look more or less 'stretched'.
 
 ### Grid Features:
 ![Grid Params](https://github.com/WastellR/BeneosTools/blob/master/GridParams.png)
@@ -17,13 +17,15 @@ The Beneos Grid is a useful tool for blocking out and rendering topdown-rendered
     * *Automatic:* AR and FOV are calculated automatically, depending on camera position.
     * *Additional:* AR and FOV are calculated based on cam position, plus additional adjustable values.
     * *Manual:* AR and FOV are fully manual.
-* **Show PIP:** Toggles whether the camera shows its picture-in-picture preview box when selected.
+* **Grid Margin in Tiles:** Additional spacing between the grid edge and camera frame. Can be positive or negative.
 * **Debug Draw Line to Focal Point:** Draws a line from the camera to the point it is looking at.
+* **Show PIP:** Toggles whether the camera shows its picture-in-picture preview box when selected.
 * **Margin:** Draws a black cover over the camera lens from its edge, at the grid widths specified.
 
 
 ## Torch
 The Beneos Torch provides a bunch of options for creating animated point lights that can loop perfectly within a given time duration, for making perfectly looped video maps with e.g. flickering torchlight.
+
 ![Torch Params](https://github.com/WastellR/BeneosTools/blob/master/TorchParams.png)
 * **Move Radius in Cm:** Radius that the light will randomly move in.
 * **Loop Duration in Seconds:** How long the animation loop lasts. This controls all other animated variables as well as movement.
