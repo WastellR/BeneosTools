@@ -281,6 +281,19 @@ void AC0ChaseTool::ToggleChasePreview()
 	}
 }
 
+void AC0ChaseTool::SetCameraChasePosition(float NewPosition)
+{
+	CameraChasePosition = NewPosition;
+	if (Camera && IsValid(Camera))
+	{
+		Camera->SetActorLocation(GetCameraPos());
+	}
+
+	// Turn off chase preview if running
+	bIsRunningChasePreview = false;
+	EditorUIUpdate.Broadcast();
+}
+
 const FVector AC0ChaseTool::GetCameraPos() const
 {
 	return BoxA->GetComponentLocation() 

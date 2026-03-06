@@ -84,8 +84,11 @@ public:
 		float CameraHeight;
 
 	// Current position of camera along chase path (between 0 and 1)
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Interp)
 		float CameraChasePosition;
+
+	UFUNCTION(CallInEditor)
+		void SetCameraChasePosition(float NewPosition);
 
 	// Length of time to pause at end of chase preview
 	UPROPERTY(EditAnywhere, meta=(Units="Seconds"))
