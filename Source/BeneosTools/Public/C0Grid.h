@@ -82,21 +82,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Beneos Tools|Snapping", meta = (EditCondition = "bEnableSnapping"))
         bool bHalveSnapIncrement;
 
-private:
-
-    // Variables used to snap while dragging
-    
-    // Actor position on previous movement frame
-    float PrevMoveX;
-    float PrevMoveY;
-    // Actor position *before* drag movement started
-    float StartMoveX;
-    float StartMoveY;
-    // Total amount that the gizmo has been moved
-    float GizmoMoveX;
-    float GizmoMoveY;
-    // True if was dragging in the previous frame
-    bool bWasDragging;
+private:   
 
     void SnapToIncrement();
 

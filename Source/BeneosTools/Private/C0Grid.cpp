@@ -20,12 +20,7 @@ AC0Grid::AC0Grid() :
     SnapOriginActor(nullptr),
     SnapOriginVector(FVector::ZeroVector),
     SnapIncrement(152.4),
-    bHalveSnapIncrement(false),
-    PrevMoveX(0.f),
-    PrevMoveY(0.f),
-    GizmoMoveX(0.f),
-    GizmoMoveY(0.f),
-    bWasDragging(false)
+    bHalveSnapIncrement(false)
 {
     PlaneMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlaneMeshComponent"));
     RootComponent = PlaneMeshComponent;
@@ -38,10 +33,6 @@ AC0Grid::AC0Grid() :
 		PlaneMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     }
     LoadGridMaterial();
-
-    FVector ActorLocation = GetActorLocation();
-    StartMoveX = ActorLocation.X;
-    StartMoveY = ActorLocation.Y;
 }
 
 void AC0Grid::OnConstruction(const FTransform& Transform)
@@ -59,58 +50,9 @@ void AC0Grid::PostEditMove(bool bFinished)
 {
     Super::PostEditMove(bFinished);
 
-    // Handle snapping
-    if (bEnableSnapping)
-    {
-        FVector NewLocation = GetActorLocation();
-        FVector Origin = SnapOriginVector;
-        float Increment = bHalveSnapIncrement ? SnapIncrement / 2.f : SnapIncrement;
-        if (bUseActorSnapOrigin && SnapOriginActor)
-        {
-            Origin = SnapOriginActor->GetActorLocation();
-        }
-        if (!bWasDragging)
-        {            
-            PrevMoveX = NewLocation.X;
-            PrevMoveY = NewLocation.Y;
-        }
-        bWasDragging = true;
-
-        const float HalfIncrement = Increment / 2.f;
-        float X = NewLocation.X - Origin.X;
-        GizmoMoveX += X - PrevMoveX;
-        float Remainder = FMath::Modulo(GizmoMoveX, Increment);
-        X = StartMoveX + GizmoMoveX - Remainder;
-        if (FMath::Abs(Remainder) > HalfIncrement)
-        {
-            X += Increment * FMath::Sign(Remainder);            
-        }
-        PrevMoveX = X;
-
-        float Y = NewLocation.Y - Origin.Y;
-        GizmoMoveY += Y - PrevMoveY;
-        Remainder = FMath::Modulo(GizmoMoveY, Increment);
-        Y = StartMoveY + GizmoMoveY - Remainder;
-        if (FMath::Abs(Remainder) > HalfIncrement)
-        {
-            Y += Increment * FMath::Sign(Remainder);
-        }
-        PrevMoveY = Y;
-
-        NewLocation.X = Origin.X + X;
-        NewLocation.Y = Origin.Y + Y;
-        SetActorLocation(NewLocation);
-    }
-
     if (bFinished)
     {
-        // Reset snapping variables
-        GizmoMoveX = 0.f;
-        GizmoMoveY = 0.f;
-        bWasDragging = false;
-        FVector NewLocation = GetActorLocation();
-        StartMoveX = NewLocation.X;
-        StartMoveY = NewLocation.Y;
+		SnapToIncrement();
 
         for (AC0TTRPGCam* Camera : ChildCameras)
         {
@@ -145,15 +87,15 @@ void AC0Grid::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent
             PropertyName == GET_MEMBER_NAME_CHECKED(AC0Grid, bUseActorSnapOrigin) ||
             PropertyName == GET_MEMBER_NAME_CHECKED(AC0Grid, SnapOriginActor) ||
             MemberPropertyName == "SnapOriginVector")
-        {
-            if(bEnableSnapping)
-                SnapToIncrement();
+        {            
+			SnapToIncrement();
         }        
         static const FName Name_RelativeLocation = USceneComponent::GetRelativeLocationPropertyName();
         // If location changed
         if (MemberPropertyName == Name_RelativeLocation)
         {
-            SnapToIncrement();            
+			
+			SnapToIncrement();            
         }
     }
 }
@@ -177,6 +119,9 @@ void AC0Grid::LoadGridMaterial(const bool bRedo)
 
 void AC0Grid::SnapToIncrement()
 {
+	if (!bEnableSnapping)
+		return;
+
     FVector NewLocation = GetActorLocation();
     FVector Origin = SnapOriginVector;
     float Increment = bHalveSnapIncrement ? SnapIncrement / 2.f : SnapIncrement;
@@ -205,8 +150,6 @@ void AC0Grid::SnapToIncrement()
     NewLocation.X = Origin.X + X;
     NewLocation.Y = Origin.Y + Y;
     SetActorLocation(NewLocation);
-    StartMoveX = NewLocation.X;
-    StartMoveY = NewLocation.Y;
 }
 
 void AC0Grid::UpdateGrid()
